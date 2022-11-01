@@ -47,10 +47,15 @@ app.get("/urls/:id", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
-//redirect to longURl when click id
+//redirect to longURl when click id, 404 if no longurl doesnt exist
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
+  if (longURL) {
+    res.redirect(longURL);
+  } else {
+    res.statusCode = 404;
+    res.send(`404 page not found`);
+  }
 });
 // welcome page
 app.get("/", (req, res) => {
