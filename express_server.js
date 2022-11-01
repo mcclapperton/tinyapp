@@ -47,6 +47,12 @@ app.get("/urls/:id", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
+// allow to edit long url in show page
+//not sure about below, need form to come up with text box which its not - also need to edit urls_show
+app.post("/urls/:id", (req, res) => {
+  longURL = urlDatabase[res.body.id];
+  res.redirect("/urls");
+});
 // delete new short url, redirect to urls_index
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
