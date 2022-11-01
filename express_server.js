@@ -47,6 +47,11 @@ app.get("/urls/:id", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
+// delete new short url, redirect to urls_index
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect("/urls");
+});
 //redirect to longURl when click id, 404 if no longurl doesnt exist
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
@@ -61,6 +66,7 @@ app.get("/u/:id", (req, res) => {
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
+
 // reply that server is running and on which port
 app.listen(PORT, () => {
   console.log(`Tiny app listening on port ${PORT}!`);
