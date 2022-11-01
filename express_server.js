@@ -23,20 +23,23 @@ const urlDatabase = {
 };
 
 //routes
+// urls index
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
+// submit form that shortens url
 app.post("/urls", (req, res) => {
   let newId = generateRandomString();
-  urlDatabase[newId] = req.body.longURL; // id-longURL key value pair save to urlDatabase
+  urlDatabase[newId] = req.body.longURL; // newid-longURL key value pair save to urlDatabase
   // console.log(urlDatabase);
   res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
 });
+// new urls page
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
-//url_show page
+//url_show page (long and short versions)
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
@@ -49,10 +52,11 @@ app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
 });
+// welcome page
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
-
+// reply that server is running and on which port
 app.listen(PORT, () => {
   console.log(`Tiny app listening on port ${PORT}!`);
 });
