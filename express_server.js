@@ -16,7 +16,8 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 app.post("/urls", (req, res) => {
-  urlDatabase[generateRandomString()] = req.body.longURL; // id-longURL key value pair save to urlDatabase
+  urlDatabase.id = req.body.longURL; // id-longURL key value pair save to urlDatabase
+  console.log(urlDatabase);
   res.redirect("/urls"); // need to redirect to /urls/:id
 });
 app.get("/urls/new", (req, res) => {
