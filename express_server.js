@@ -35,15 +35,15 @@ const users = {
     password: "dishwasher-funk",
   },
 };
-
-const emailAlreadyExists = (email, users) => {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
-    }
-  }
-  return false;
-};
+// redundant
+// const emailAlreadyExists = (email, users) => {
+//   for (const user in users) {
+//     if (users[user].email === email) {
+//       return users[user];
+//     }
+//   }
+//   return false;
+// };
 //keeps track of all the urls and their shortened forms
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
@@ -102,7 +102,7 @@ app.post("/urls/:id/delete", (req, res) => {
 //registration email and password
 app.post("/register", (req, res) => {
   if (req.body.email && req.body.password) {
-    if (!emailAlreadyExists(req.body.email, users)) {
+    if (!getUser(req.body.email, users)) {
       const userId = generateRandomString();
       users[userId] = {
         userId,
