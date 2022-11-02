@@ -80,6 +80,11 @@ app.post("/login", (req, res) => {
   res.cookie("username", req.body["username"]);
   res.redirect(`/urls`);
 });
+//logout route
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect(`/urls`);
+});
 // welcome page
 app.get("/", (req, res) => {
   res.send("Hello!");

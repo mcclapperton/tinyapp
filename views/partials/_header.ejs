@@ -18,21 +18,28 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
-    <div class="card-title"> <%= username %> </div>
-    <form class="form-group" action="/login" method="POST">
-      <div class="form-group mb-2">
-        <label for="username">username:</label>
-        <input
-          class="form-group"
-          type="text"
-          name="username"
-          placeholder="username"
-          style="width: 300px; margin: 1em"
-        />
-      <button type="submit" class="btn btn-primary">Submit</button>
-      </div>
-    </form>
-    <div 
-  </div>
+    <% if (username){ %>
+      <form class="form-group" action="/logout" method="POST">
+        <div class="form-group mb-2">
+          <button class="btn btn-primary">Logout</button>
+        </div>
+        <div class="card-title"> <%= username %> </div>
+        </form>
+        <% } else { %>
+          <form class="form-group" action="/login" method="POST">
+            <div class="form-group mb-2">
+              <label for="username">username:</label>
+              <input
+                class="form-group"
+                type="text"
+                name="username"
+                placeholder="username"
+                style="width: 300px; margin: 1em"
+              />
+            <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            <div class="card-title"> <%= username %> </div>
+          </form>
+          <% } %>
   </nav>
 </header>
