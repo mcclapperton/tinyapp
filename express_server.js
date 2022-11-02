@@ -27,7 +27,7 @@ const urlDatabase = {
 //routes
 // urls index
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 // submit form that shortens url
@@ -39,13 +39,15 @@ app.post("/urls", (req, res) => {
 });
 // new urls page
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { username: req.cookies["username"] };
+  res.render("urls_new", templateVars);
 });
 //url_show page (long and short versions)
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
+    username: req.cookies["username"],
   };
   res.render("urls_show", templateVars);
 });
@@ -76,7 +78,7 @@ app.get("/u/:id", (req, res) => {
 //login route
 app.post("/login", (req, res) => {
   res.cookie("username", req.body["username"]);
-  res.redirect(`/urls/`);
+  res.redirect(`/urls`);
 });
 // welcome page
 app.get("/", (req, res) => {
