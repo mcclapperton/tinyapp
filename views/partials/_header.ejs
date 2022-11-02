@@ -22,8 +22,9 @@
       <form class="form-group" action="/logout" method="POST">
         <div class="form-group mb-2">
           <button class="btn btn-primary">Logout</button>
+          <div class="card-title">
+          <label for="username">Logged in under:</label> <%= username %> </div>
         </div>
-        <div class="card-title"> <%= username %> </div>
         </form>
         <% } else { %>
           <form class="form-group" action="/login" method="POST">
@@ -38,7 +39,6 @@
               />
             <button type="submit" class="btn btn-primary">Submit</button>
             </div>
-            <div class="card-title"> <%= username %> </div>
           </form>
           <% } %>
   </nav>
