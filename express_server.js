@@ -44,8 +44,35 @@ app.use(morgan("dev"));
 //routes
 // urls index
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_Id"]],
+  };
   res.render("urls_index", templateVars);
+});
+// new urls page
+app.get("/urls/new", (req, res) => {
+  const templateVars = { user: users[req.cookies["user_Id"]] };
+  res.render("urls_new", templateVars);
+});
+//register page
+app.get("/register", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies["user_Id"]],
+    // email: req.body["email"],
+    // password: req.body["password"],
+  };
+  res.render("urls_register", templateVars);
+});
+
+//url_show page (long and short versions)
+app.get("/urls/:id", (req, res) => {
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id],
+    user: users[req.cookies["user_Id"]],
+  };
+  res.render("urls_show", templateVars);
 });
 // submit form that shortens url
 app.post("/urls", (req, res) => {
@@ -54,22 +81,12 @@ app.post("/urls", (req, res) => {
   // console.log(urlDatabase);
   res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
 });
-// new urls page
-app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
-  res.render("urls_new", templateVars);
-});
-//register page
-app.get("/register", (req, res) => {
-  const templateVars = {
-    username: req.cookies["username"],
-    email: req.body["email"],
-    password: req.body["password"],
-  };
-  res.render("urls_register", templateVars);
+// delete new short url, redirect to urls_index
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect("/urls");
 });
 //registeration email and password
-
 app.post("/register", (req, res) => {
   const userId = generateRandomString();
   users[userId] = {
@@ -80,21 +97,6 @@ app.post("/register", (req, res) => {
   res.cookie("user_id", userId);
   res.redirect("/urls");
 });
-
-//url_show page (long and short versions)
-app.get("/urls/:id", (req, res) => {
-  const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    username: req.cookies["username"],
-  };
-  res.render("urls_show", templateVars);
-});
-// delete new short url, redirect to urls_index
-app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect("/urls");
-});
 // allow to edit long url in show page
 // redirects to edit page
 app.post("/urls/:id", (req, res) => {
@@ -102,7 +104,7 @@ app.post("/urls/:id", (req, res) => {
   const longURL = req.body.longURL;
   urlDatabase[id] = longURL;
   // console.log(urlDatabase[id])
-  res.redirect("/urls/");
+  res.redirect("/urls");
 });
 //redirect to longURl when click id, 404 if no longurl doesnt exist
 app.get("/u/:id", (req, res) => {
@@ -111,17 +113,15 @@ app.get("/u/:id", (req, res) => {
     res.status(404).send(`404 page not found`);
     return;
   }
-
   res.redirect(longURL);
 });
 //login route
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body["username"]);
   res.redirect(`/urls`);
 });
 //logout route
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_Id");
   res.redirect(`/urls`);
 });
 // welcome page
