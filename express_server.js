@@ -18,23 +18,20 @@ const generateRandomString = () => {
   }
   return randomId.join("");
 };
-
-// global object to store and access users in app
-const users = {
-  // user1: {
-  //   id: "user1",
-  //   email: "user@e.com",
-  //   password: "456",
-  // },
-  // user2: {
-  //   id: "user2",
-  //   email: "user2@e.com",
-  //   password: "123",
-  // },
+// returns user
+const getUser = (email) => {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return users[user];
+    }
+  }
+  return false;
 };
+// global object to store and access users in app
+const users = {};
 const emailAlreadyExists = (email) => {
   for (const user in users) {
-    if (user[user].email === email) {
+    if (users[user].email === email) {
       return true;
     }
   }
@@ -45,12 +42,13 @@ const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
-
 // middleware
 app.use(morgan("dev"));
 //routes
 // urls index
 app.get("/urls", (req, res) => {
+  console.log("users:", users);
+  console.log("request", req.cookies["user_Id"]);
   const templateVars = {
     urls: urlDatabase,
     user: users[req.cookies["user_Id"]],
@@ -71,7 +69,11 @@ app.get("/register", (req, res) => {
   };
   res.render("urls_register", templateVars);
 });
-
+// login page
+app.get("/login", (req, res) => {
+  let templateVars = { user: users[req.cookies["user_Id"]] };
+  res.render("urls_login", templateVars);
+});
 //url_show page (long and short versions)
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
@@ -96,23 +98,22 @@ app.post("/urls/:id/delete", (req, res) => {
 //registeration email and password
 app.post("/register", (req, res) => {
   if (req.body.email && req.body.password) {
-    if (!emailAlreadyExists(req.body.email)) {
+    if ((!emailAlreadyExists(req.body.email), users)) {
       const userId = generateRandomString();
       users[userId] = {
         userId,
         email: req.body.email,
         password: req.body.password,
       };
-      res.cookie("user_id", userId);
+      res.cookie("user_Id", userId);
       res.redirect("/urls");
+      return;
     } else {
-      res.statusCode = 400;
-      res.send(`Sorry, that email already exists`);
+      res.status(400).send(`Sorry, that email already exists`);
+      return;
     }
-  } else {
-    res.statusCode = 400;
-    res.send(`Please enter an email and password`);
   }
+  res.status(400).send(`Please enter an email and password`);
 });
 // allow to edit long url in show page
 // redirects to edit page
@@ -120,7 +121,6 @@ app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const longURL = req.body.longURL;
   urlDatabase[id] = longURL;
-  // console.log(urlDatabase[id])
   res.redirect("/urls");
 });
 //redirect to longURl when click id, 404 if no longurl doesnt exist
@@ -134,18 +134,30 @@ app.get("/u/:id", (req, res) => {
 });
 //login route
 app.post("/login", (req, res) => {
-  res.redirect(`/urls`);
+  const user = getUser(req.body.email, users);
+  if (user) {
+    console.log("user:", user);
+    if (req.body.password === user.password) {
+      res.cookie("user_Id", user.userId);
+      res.redirect("/urls/");
+    } else {
+      res.statusCode = 403;
+      res.send(`Please try again, password and email do not match`);
+    }
+  } else {
+    res.statusCode = 403;
+    res.send(`Sorry, email not found`);
+  }
 });
 //logout route
 app.post("/logout", (req, res) => {
   res.clearCookie("user_Id");
-  res.redirect(`/urls`);
+  res.redirect(`/login`);
 });
 // welcome page
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
-
 // reply that server is running and on which port
 app.listen(PORT, () => {
   console.log(`Tiny app listening on port ${PORT}!`);
