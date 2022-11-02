@@ -32,7 +32,14 @@ const users = {
   //   password: "123",
   // },
 };
-
+const emailAlreadyExists = (email) => {
+  for (const user in users) {
+    if (user[user].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
 //keeps track of all the urls and their shortened forms
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
@@ -88,14 +95,24 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 //registeration email and password
 app.post("/register", (req, res) => {
-  const userId = generateRandomString();
-  users[userId] = {
-    userId,
-    email: req.body.email,
-    password: req.body.password,
-  };
-  res.cookie("user_id", userId);
-  res.redirect("/urls");
+  if (req.body.email && req.body.password) {
+    if (!emailAlreadyExists(req.body.email)) {
+      const userId = generateRandomString();
+      users[userId] = {
+        userId,
+        email: req.body.email,
+        password: req.body.password,
+      };
+      res.cookie("user_id", userId);
+      res.redirect("/urls");
+    } else {
+      res.statusCode = 400;
+      res.send(`Sorry, that email already exists`);
+    }
+  } else {
+    res.statusCode = 400;
+    res.send(`Please enter an email and password`);
+  }
 });
 // allow to edit long url in show page
 // redirects to edit page
