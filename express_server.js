@@ -2,7 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 app.use(express.urlencoded({ extended: true }));
+const cookieParser = require("cookie-parser");
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 //generates a 6 digit random string for id
 const generateRandomString = () => {
@@ -73,7 +75,7 @@ app.get("/u/:id", (req, res) => {
 });
 //login route
 app.post("/login", (req, res) => {
-  res.cookie(res.body);
+  res.cookie("username", req.body["username"]);
   res.redirect(`/urls/`);
 });
 // welcome page
