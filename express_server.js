@@ -19,7 +19,7 @@ const generateRandomString = () => {
   return randomId.join("");
 };
 // returns user
-const getUser = (email) => {
+const getUser = (email, users) => {
   for (const user in users) {
     if (users[user].email === email) {
       return users[user];
@@ -28,11 +28,18 @@ const getUser = (email) => {
   return false;
 };
 // global object to store and access users in app
-const users = {};
-const emailAlreadyExists = (email) => {
+const users = {
+  userId: {
+    userId: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
+const emailAlreadyExists = (email, users) => {
   for (const user in users) {
     if (users[user].email === email) {
-      return true;
+      return users[user];
     }
   }
   return false;
@@ -47,8 +54,6 @@ app.use(morgan("dev"));
 //routes
 // urls index
 app.get("/urls", (req, res) => {
-  console.log("users:", users);
-  console.log("request", req.cookies["user_Id"]);
   const templateVars = {
     urls: urlDatabase,
     user: users[req.cookies["user_Id"]],
@@ -87,7 +92,6 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls", (req, res) => {
   let newId = generateRandomString();
   urlDatabase[newId] = req.body.longURL; // newid-longURL key value pair save to urlDatabase
-  // console.log(urlDatabase);
   res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
 });
 // delete new short url, redirect to urls_index
@@ -95,10 +99,10 @@ app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
-//registeration email and password
+//registration email and password
 app.post("/register", (req, res) => {
   if (req.body.email && req.body.password) {
-    if ((!emailAlreadyExists(req.body.email), users)) {
+    if (!emailAlreadyExists(req.body.email, users)) {
       const userId = generateRandomString();
       users[userId] = {
         userId,
@@ -136,10 +140,9 @@ app.get("/u/:id", (req, res) => {
 app.post("/login", (req, res) => {
   const user = getUser(req.body.email, users);
   if (user) {
-    console.log("user:", user);
     if (req.body.password === user.password) {
       res.cookie("user_Id", user.userId);
-      res.redirect("/urls/");
+      res.redirect("/urls");
     } else {
       res.statusCode = 403;
       res.send(`Please try again, password and email do not match`);
