@@ -5,6 +5,7 @@ app.use(express.urlencoded({ extended: true }));
 const cookieParser = require("cookie-parser");
 app.set("view engine", "ejs");
 app.use(cookieParser());
+const morgan = require("morgan");
 
 //generates a 6 digit random string for id
 const generateRandomString = () => {
@@ -18,12 +19,28 @@ const generateRandomString = () => {
   return randomId.join("");
 };
 
+// global object to store and access users in app
+const users = {
+  // user1: {
+  //   id: "user1",
+  //   email: "user@e.com",
+  //   password: "456",
+  // },
+  // user2: {
+  //   id: "user2",
+  //   email: "user2@e.com",
+  //   password: "123",
+  // },
+};
+
 //keeps track of all the urls and their shortened forms
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
 
+// middleware
+app.use(morgan("dev"));
 //routes
 // urls index
 app.get("/urls", (req, res) => {
@@ -42,6 +59,28 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { username: req.cookies["username"] };
   res.render("urls_new", templateVars);
 });
+//register page
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies["username"],
+    email: req.body["email"],
+    password: req.body["password"],
+  };
+  res.render("urls_register", templateVars);
+});
+//registeration email and password
+
+app.post("/register", (req, res) => {
+  const userId = generateRandomString();
+  users[userId] = {
+    userId,
+    email: req.body.email,
+    password: req.body.password,
+  };
+  res.cookie("user_id", userId);
+  res.redirect("/urls");
+});
+
 //url_show page (long and short versions)
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
