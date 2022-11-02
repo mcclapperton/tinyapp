@@ -20,9 +20,22 @@
         <p class="card-text">
           Short URL: <a href="/u/<%= id %>"><%= id %></a>
         </p>
-        <h6 class="card-header"> <form method="POST" action="/urls/<%= longURL %>/edit"> 
-          <button type="submit">Submit</button>
-        </form></h6>
+        </div>
+        <!-- I THINK THIS IS THE PROBLEM below @ action -->
+       <form class="form-group" action="/urls/<%= id %>/" method="POST">
+          <div class="form-group mb-2">
+            <label for="longURL">New URL:</label>
+            <input
+              class="form-group"
+              type="text"
+              name="longURL"
+              placeholder="http://"
+              value="<%= longURL %>"
+              style="width: 300px; margin: 1em"
+            />
+          <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </form>
       </div>
       <div class="card-footer text-muted"></div>
     </div>

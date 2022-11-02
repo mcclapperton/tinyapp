@@ -41,12 +41,14 @@
                 <button type="submit">Delete</button>
               </form>
             </td>
-            <td><form method="POST" action="/urls/<%= id %>/edit"> 
-              <button type="submit">Edit</button>
-            </form></td>
-            </tr>
-          <% } %>
+            <td>
+              <form method="GET" action="/urls/<%= id %>"> 
+                <button type="submit">Edit</button>
+              </form>
+            </td>
+          </tr>
         </tbody>
+        <% } %>
       </table>
     </main>
     <!-- Bootstrap JS -->

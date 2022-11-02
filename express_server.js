@@ -47,26 +47,34 @@ app.get("/urls/:id", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
-// allow to edit long url in show page
-//not sure about below, need form to come up with text box which its not - also need to edit urls_show
-app.post("/urls/:id", (req, res) => {
-  longURL = urlDatabase[res.body.id];
-  res.redirect("/urls");
-});
 // delete new short url, redirect to urls_index
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
+// allow to edit long url in show page
+// redirects to edit page
+app.post("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  const longURL = req.body.longURL;
+  urlDatabase[id] = longURL;
+  // console.log(urlDatabase[id])
+  res.redirect("/urls/");
+});
 //redirect to longURl when click id, 404 if no longurl doesnt exist
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
-  if (longURL) {
-    res.redirect(longURL);
-  } else {
-    res.statusCode = 404;
-    res.send(`404 page not found`);
+  if (!longURL) {
+    res.status(404).send(`404 page not found`);
+    return;
   }
+
+  res.redirect(longURL);
+});
+//login route
+app.post("/login", (req, res) => {
+  res.cookie(res.body);
+  res.redirect(`/urls/`);
 });
 // welcome page
 app.get("/", (req, res) => {
