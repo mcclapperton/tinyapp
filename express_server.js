@@ -60,12 +60,16 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index", templateVars);
 });
-// new urls page
+// new urls page, if not logged in redirects to login
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies["user_Id"]) {
+    res.redirect(`/login`);
+    return;
+  }
   const templateVars = { user: users[req.cookies["user_Id"]] };
   res.render("urls_new", templateVars);
 });
-//register page
+//register page, if logged in redirect to /urls
 app.get("/register", (req, res) => {
   if (req.cookies["user_Id"]) {
     res.redirect(`/urls`);
@@ -73,8 +77,6 @@ app.get("/register", (req, res) => {
   }
   const templateVars = {
     user: users[req.cookies["user_Id"]],
-    // email: req.body["email"],
-    // password: req.body["password"],
   };
   res.render("urls_register", templateVars);
 });
@@ -97,8 +99,13 @@ app.get("/urls/:id", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
-// submit form that shortens url
+// submit form that shortens url, if not logged in says please login
 app.post("/urls", (req, res) => {
+  if (!req.cookies["user_Id"]) {
+    res.statusCode = 403;
+    res.send(`Please login to shorten your url`);
+    return;
+  }
   let newId = generateRandomString();
   urlDatabase[newId] = req.body.longURL; // newid-longURL key value pair save to urlDatabase
   res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
@@ -136,14 +143,14 @@ app.post("/urls/:id", (req, res) => {
   urlDatabase[id] = longURL;
   res.redirect("/urls");
 });
-//redirect to longURl when click id, 404 if no longurl doesnt exist
+//redirect to longURl when click id, 404 if no longurl doesnt exist, if id doesnt exist send message
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
-  if (!longURL) {
-    res.status(404).send(`404 page not found`);
+  if (longURL) {
+    res.redirect(longURL);
     return;
   }
-  res.redirect(longURL);
+  res.status(404).send(`404 page not found, this short URL does not exist`);
 });
 //login route
 app.post("/login", (req, res) => {
