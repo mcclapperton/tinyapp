@@ -7,6 +7,17 @@ app.set("view engine", "ejs");
 app.use(cookieParser());
 const morgan = require("morgan");
 
+// returns the URLs where the userID is equal to the id of the currently logged-in user.
+// const urlsForUser = (id) => {
+//   let userUrls = {};
+//   for (let id in urlDatabase) {
+//     if (urlDatabase[id].userId === id) {
+//       userUrls[id] = urlDatabase[id];
+//     }
+//   }
+//   return userUrls;
+// };
+
 //generates a 6 digit random string for id
 const generateRandomString = () => {
   const characters =
@@ -67,10 +78,8 @@ const urlDatabase = {
 app.use(morgan("dev"));
 //ROUTES
 
+// urls render page, send error message if not logged in
 app.get("/urls", (req, res) => {
-  if (!req.cookies["user_Id"]) {
-    return res.send(`Please login to view url page`);
-  }
   const userID = req.cookies["user_Id"];
 
   // console.log('userCookies', userID)
@@ -93,14 +102,13 @@ app.get("/urls/new", (req, res) => {
 
   const urls = urlDatabase[req.cookies["user_Id"]];
 
-  const templateVars = { user: users[req.cookies["user_Id"]], urls: urls };
+  const templateVars = { user: users[req.cookies["user_Id"]] };
   return res.render("urls_new", templateVars);
 });
 //register page, if logged in redirect to /urls
 app.get("/register", (req, res) => {
   if (req.cookies["user_Id"]) {
-    res.redirect(`/urls`);
-    return;
+    return res.redirect(`/urls`);
   }
   const templateVars = {
     user: users[req.cookies["user_Id"]],
@@ -120,8 +128,8 @@ app.get("/login", (req, res) => {
 
 // url_show page (long and short versions)
 app.get("/urls/:id", (req, res) => {
-  // console.log('urlDatabase', urlDatabase)
-  // console.log('req.params.id', req.params.id)
+  // console.log("urlDatabase", urlDatabase);
+  // console.log("req.params.id", req.params.id);
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id].longURL,
@@ -136,6 +144,10 @@ app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   urlDatabase[id].longURL = req.body.longURL;
   res.redirect(`/urls`);
+  return res.render("urls_show", templateVars);
+
+  // console.log('urlDatabase', urlDatabase)
+  // console.log('req.params.id', req.params.id)
 });
 // submit form that shortens url, if not logged in says please login
 app.post("/urls", (req, res) => {
@@ -171,8 +183,7 @@ app.post("/register", (req, res) => {
       res.redirect("/urls");
       return;
     } else {
-      res.status(400).send(`Sorry, that email already exists`);
-      return;
+      return res.status(400).send(`Sorry, that email already exists`);
     }
   }
   res.status(400).send(`Please enter an email and password`);
