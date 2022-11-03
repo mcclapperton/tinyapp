@@ -36,7 +36,7 @@ const generateRandomString = () => {
 const getUser = (userID, email, users) => {
   if (userID) {
     for (const user in users) {
-      if (users[user].userId === userID) {
+      if (users[user].userID === userID) {
         return users[user];
       }
     }
@@ -56,8 +56,8 @@ const getUser = (userID, email, users) => {
 };
 // global object to store and access users in app
 const users = {
-  // userId: {
-  //   userId: "user2RandomID",
+  // userID: {
+  //   userID: "user2RandomID",
   //   email: "user2@example.com",
   //   password: "dishwasher-funk",
   // },
@@ -67,11 +67,11 @@ const users = {
 const urlDatabase = {
   b2xVn2: {
     longURL: "http://www.lighthouselabs.ca",
-    userId: "b2xVn2",
+    userID: "b2xVn2",
   },
   psm5xK: {
     longURL: "http://www.google.com",
-    userId: "psm5xK",
+    userID: "psm5xK",
   },
 };
 // middleware
@@ -159,7 +159,7 @@ app.post("/urls", (req, res) => {
   const newId = generateRandomString();
   urlDatabase[newId] = {
     longURL: req.body.longURL,
-    userId: req.cookies["user_Id"],
+    userID: req.cookies["user_Id"],
   }; // newid-longURL key value pair save to urlDatabase
   return res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
 });
@@ -172,14 +172,14 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/register", (req, res) => {
   if (req.body.email && req.body.password) {
     if (!getUser(null, req.body.email, users)) {
-      const userId = generateRandomString();
+      const userID = generateRandomString();
 
-      users[userId] = {
-        userId,
+      users[userID] = {
+        userID,
         email: req.body.email,
         password: req.body.password,
       };
-      res.cookie("user_Id", userId);
+      res.cookie("user_Id", userID);
       res.redirect("/urls");
       return;
     } else {
@@ -202,7 +202,7 @@ app.post("/login", (req, res) => {
   const user = getUser(null, req.body.email, users);
   if (user) {
     if (req.body.password === user.password) {
-      res.cookie("user_Id", user.userId);
+      res.cookie("user_Id", user.userID);
       return res.redirect("/urls");
     } else {
       res.statusCode = 403;
