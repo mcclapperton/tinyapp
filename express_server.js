@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 // const morgan = require("morgan");
 
 app.use(express.urlencoded({ extended: true }));
@@ -129,8 +130,9 @@ app.post("/register", (req, res) => {
       users[id] = {
         id: id,
         email,
-        password,
+        password: bcrypt.hashSync(password),
       };
+      console.log(users[id]);
       res.cookie("user_Id", id);
       return res.redirect("/urls");
     }
@@ -198,12 +200,13 @@ app.post("/login", (req, res) => {
   const password = req.body.password;
   const email = req.body.email;
   const user = getUser(null, email, users);
-  console.log("post/login/user:", user);
+  // console.log("post/login/user:", user);
   if (user === null) {
     return res.status(403).send("<h2>Sorry, user not found</h2>");
   }
-  if (password === user.password) {
-    res.cookie("user_Id", user.userID);
+  if (bcrypt.compareSync(password, user.password)) {
+    // console.log("user:", user.id)
+    res.cookie("user_Id", user.id);
     return res.redirect("/urls");
   }
   return res
