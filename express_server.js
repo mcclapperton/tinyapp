@@ -18,14 +18,32 @@ const generateRandomString = () => {
   }
   return randomId.join("");
 };
-// returns user
-const getUser = (email, users) => {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
+
+/**
+ * Function do user search by email or userID
+ */
+const getUser = (userID, email, users) => {
+
+  if(userID) {
+    for (const user in users) {
+      if (users[user].userId === userID) {
+        return users[user];
+      }
     }
+
+    return null
   }
-  return false;
+
+  if(email) {
+    for (const user in users) {
+      if (users[user].email === email) {
+        return users[user];
+      }
+    }
+
+    return null
+  }
+
 };
 // global object to store and access users in app
 const users = {
@@ -50,38 +68,40 @@ const urlDatabase = {
     longURL: "http://www.lighthouselabs.ca",
     userId: "b2xVn2",
   },
-  psm5xK: { longURL: "http://www.google.com", userId: "psm5xK" },
+  psm5xK: { 
+    longURL: "http://www.google.com", 
+    userId: "psm5xK" 
+  }
 };
 // middleware
 app.use(morgan("dev"));
 //ROUTES
 
-//url_show page (long and short versions)
-app.get("/urls/:id", (req, res) => {
-  let templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
-    user: users[req.cookies["user_Id"]],
-  };
-  res.render("urls_show", templateVars);
-});
-// urls index
 app.get("/urls", (req, res) => {
+  const userID = req.cookies['user_Id']
+
+  console.log('userCookies', userID)
+  const currentUser = getUser(userID, null, users)
+  
+  console.log('currentUser', currentUser)
+
   const templateVars = {
     urls: urlDatabase,
-    user: users[req.cookies["user_Id"]],
+    user: currentUser,
   };
-  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
-// new urls page, if not logged in redirects to login
+
+// render form page to generate new shortURL id and longURL pair; redirect to login if not logged in
 app.get("/urls/new", (req, res) => {
   if (!req.cookies["user_Id"]) {
-    res.redirect(`/login`);
-    return;
+    return res.redirect(`/login`);
   }
-  const templateVars = { user: users[req.cookies["user_Id"]] };
-  res.render("urls_new", templateVars);
+
+  const urls = urlDatabase[req.cookies["user_Id"]]
+
+  const templateVars = { user: users[req.cookies["user_Id"]], urls: urls};
+  return res.render("urls_new", templateVars);
 });
 //register page, if logged in redirect to /urls
 app.get("/register", (req, res) => {
@@ -97,19 +117,31 @@ app.get("/register", (req, res) => {
 // login page
 //redirects to /urls if logged in
 app.get("/login", (req, res) => {
-  if (req.cookies["user_Id"]) {
-    res.redirect(`/urls`);
-    return;
-  }
+  // if (req.cookies["user_Id"]) {
+  //   res.redirect(`/urls`);
+  //   return;
+  // }
   let templateVars = { user: users[req.cookies["user_Id"]] };
   res.render("urls_login", templateVars);
 });
+
+// url_show page (long and short versions)
+app.get("/urls/:id", (req, res) => {
+  console.log('urlDatabase', urlDatabase)
+  console.log('req.params.id', req.params.id)
+  const templateVars = {
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id].longURL,
+    user: users[req.cookies["user_Id"]],
+  };
+  return res.render("urls_show", templateVars);
+});
+
 // allow to edit long url in show page
 // redirects to edit page
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
-  const longURL = req.body.longURL;
-  urlDatabase[id].longURL = longURL;
+  urlDatabase[id].longURL = req.body.longURL;
   res.redirect(`/urls`);
 });
 // submit form that shortens url, if not logged in says please login
@@ -120,8 +152,11 @@ app.post("/urls", (req, res) => {
     return;
   }
   const newId = generateRandomString();
-  urlDatabase[newId] = req.body.longURL; // newid-longURL key value pair save to urlDatabase
-  res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
+  urlDatabase[newId] = {
+    longURL: req.body.longURL,
+    userId: req.cookies["user_Id"]
+  }// newid-longURL key value pair save to urlDatabase
+  return res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
 });
 // delete new short url, redirect to urls_index
 app.post("/urls/:id/delete", (req, res) => {
@@ -131,8 +166,9 @@ app.post("/urls/:id/delete", (req, res) => {
 //registration email and password
 app.post("/register", (req, res) => {
   if (req.body.email && req.body.password) {
-    if (!getUser(req.body.email, users)) {
+    if (!getUser(null, req.body.email, users)) {
       const userId = generateRandomString();
+
       users[userId] = {
         userId,
         email: req.body.email,
@@ -159,20 +195,19 @@ app.get("/u/:id", (req, res) => {
 });
 //login route
 app.post("/login", (req, res) => {
-  const user = getUser(req.body.email, users);
+  const user = getUser(null, req.body.email, users);
   if (user) {
     if (req.body.password === user.password) {
       res.cookie("user_Id", user.userId);
-      res.redirect("/urls");
-      return;
+      return res.redirect("/urls");
+      
     } else {
       res.statusCode = 403;
-      res.send(`Please try again, password and email do not match`);
-      return;
+      return res.send(`Please try again, password and email do not match`);
     }
   }
   res.statusCode = 403;
-  res.send(`Sorry, email not found`);
+  return res.send(`Sorry, email not found`);
 });
 //logout route
 app.post("/logout", (req, res) => {
