@@ -81,14 +81,17 @@ app.use(morgan("dev"));
 // urls render page, send error message if not logged in
 app.get("/urls", (req, res) => {
   const userID = req.cookies["user_Id"];
-  // console.log('userCookies', userID)
-  const currentUser = getUser(userID, null, users);
-  // console.log('currentUser', currentUser)
-  const templateVars = {
-    urls: urlDatabase,
-    user: currentUser,
-  };
-  res.render("urls_index", templateVars);
+  if (userID) {
+    // console.log('userCookies', userID)
+    const currentUser = getUser(userID, null, users);
+    // console.log('currentUser', currentUser)
+    const templateVars = {
+      urls: urlDatabase,
+      user: currentUser,
+    };
+    res.render("urls_index", templateVars);
+  }
+  return res.status(403).send("<h2>Please login to see urls</h2>");
 });
 
 // render form page to generate new shortURL id and longURL pair; redirect to login if not logged in
@@ -159,7 +162,7 @@ app.post("/urls", (req, res) => {
     }; // newid-longURL key value pair save to urlDatabase
     return res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
   }
-  return res.statusCode(403).send("<h2>Please login to shorten your url</h2>");
+  return res.status(403).send("<h2>Please login to shorten your url</h2>");
 });
 // delete new short url, redirect to urls_index
 app.post("/urls/:id/delete", (req, res) => {
@@ -209,7 +212,7 @@ app.post("/login", (req, res) => {
       ));
     }
   }
-  return res.statusCode(403).send("<h2>Sorry, email not found</h2>");
+  return res.status(403).send("<h2>Sorry, email not found</h2>");
 });
 //logout route
 app.post("/logout", (req, res) => {
