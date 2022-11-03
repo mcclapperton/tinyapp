@@ -1,13 +1,18 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 // const morgan = require("morgan");
 
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-app.use(cookieParser());
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["gyfisdbiri", "iwirufhfhfhfhf0987hfhf"],
+  })
+);
 
 // HELPERS
 
@@ -89,7 +94,7 @@ const urlDatabase = {
 // login page
 //redirects to /urls if logged in
 app.get("/login", (req, res) => {
-  if (req.cookies["user_Id"]) {
+  if (req.session.user_Id) {
     return res.redirect(`/urls`);
   }
   // let templateVars = { email, password, user: null, userID };
@@ -100,7 +105,7 @@ app.get("/login", (req, res) => {
 // Post to urls
 // submit form that shortens url, if not logged in says please login
 app.post("/urls", (req, res) => {
-  const cookieID = req.cookies["user_Id"];
+  const cookieID = req.session.user_Id;
   // const userID = users[cookieID];
   const updatedURL = req.body.longURL;
   // console.log("updatedURL:", updatedURL);
@@ -133,7 +138,8 @@ app.post("/register", (req, res) => {
         password: bcrypt.hashSync(password),
       };
       console.log(users[id]);
-      res.cookie("user_Id", id);
+      // res.cookie("user_Id", id);
+      req.session.user_Id = id;
       return res.redirect("/urls");
     }
     return res.status(400).send("<h2>Sorry, that email already exists</h2>");
@@ -144,7 +150,8 @@ app.post("/register", (req, res) => {
 app.get("/register", (req, res) => {
   const email = req.body.email;
   // const user = getUser(email, urlDatabase);
-  const cookieID = req.cookies["user_Id"];
+  // const cookieID = req.cookies["user_Id"];
+  const cookieID = req.session.user_Id;
   const id = req.params.id;
   // console.log("email:", email);
   // console.log("cookieID:", id);
@@ -159,17 +166,18 @@ app.get("/register", (req, res) => {
 
 //redirect to longURl when click id, 404 if no longurl doesnt exist, if id doesnt exist send message
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id].longURL;
-  const cookieID = req.cookies["user_Id"];
+  // const longURL = urlDatabase[req.params.id].longURL;
+  const cookieID = req.session.user_Id;
   if (!cookieID) {
     return res.send("<h2>Login to see page!</h2>");
   }
-  if (longURL === undefined) {
-    res
+  if (!urlDatabase[req.params.id]) {
+    return res
       .status(404)
       .send("<h2>404 page not found, this URL does not exist</h2>");
   }
-  return res.redirect(longURL);
+
+  return res.redirect(urlDatabase[req.params.id].longURL);
 });
 // delete new short url, redirect to urls_index
 
@@ -177,7 +185,7 @@ app.get("/u/:id", (req, res) => {
 // value not the short url value. cannot figure out how to get this right
 //PROBLEMS
 app.post("/urls/:id/delete", (req, res) => {
-  const cookieID = req.cookies["user_Id"];
+  const cookieID = req.session.user_Id;
   const id = req.params.id;
 
   if (!id) {
@@ -206,7 +214,7 @@ app.post("/login", (req, res) => {
   }
   if (bcrypt.compareSync(password, user.password)) {
     // console.log("user:", user.id)
-    res.cookie("user_Id", user.id);
+    req.session.user_Id = user.id;
     return res.redirect("/urls");
   }
   return res
@@ -216,14 +224,15 @@ app.post("/login", (req, res) => {
 
 //logout route
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_Id");
+  res.clearCookie("session");
+  res.clearCookie("session.sig");
   res.redirect(`/login`);
 });
 // allow to edit long url in show page
 // redirects to edit page
 // PROBLEMS
 app.post("/urls/:id", (req, res) => {
-  const cookieID = req.cookies["user_Id"];
+  const cookieID = req.session.user_Id;
   const id = req.params.id;
   const updatedURL = req.body.longURL;
 
@@ -249,7 +258,7 @@ app.get("/hello", (req, res) => {
 
 // render form page to generate new shortURL id and longURL pair; redirect to login if not logged in
 app.get("/urls/new", (req, res) => {
-  const cookieID = req.cookies["user_Id"];
+  const cookieID = req.session.user_Id;
   const user = users[cookieID]; //user object for sp. cookie id
   // const urls = urlDatabase[userID];
   const templateVars = {
@@ -267,7 +276,7 @@ app.get("/urls/new", (req, res) => {
 // existing urls render page, send error message if not logged in
 // MAYBE PROBLMES
 app.get("/urls", (req, res) => {
-  const cookieID = req.cookies["user_Id"];
+  const cookieID = req.session.user_Id;
   // console.log("cookie id:", cookieID);
   const filteredURLS = urlsForUser(cookieID, urlDatabase);
   // console.log("filteredurls:", filteredURLS);
@@ -292,7 +301,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[req.params.id].longURL;
-  const cookieID = req.cookies["user_Id"];
+  const cookieID = req.session.user_Id;
   const user_Id = urlDatabase[req.params.id].userID; // user/cookie id
   const user = users[cookieID];
 
