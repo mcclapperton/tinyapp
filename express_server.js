@@ -23,27 +23,25 @@ const generateRandomString = () => {
  * Function do user search by email or userID
  */
 const getUser = (userID, email, users) => {
-
-  if(userID) {
+  if (userID) {
     for (const user in users) {
       if (users[user].userId === userID) {
         return users[user];
       }
     }
 
-    return null
+    return null;
   }
 
-  if(email) {
+  if (email) {
     for (const user in users) {
       if (users[user].email === email) {
         return users[user];
       }
     }
 
-    return null
+    return null;
   }
-
 };
 // global object to store and access users in app
 const users = {
@@ -53,37 +51,32 @@ const users = {
   //   password: "dishwasher-funk",
   // },
 };
-// redundant
-// const emailAlreadyExists = (email, users) => {
-//   for (const user in users) {
-//     if (users[user].email === email) {
-//       return users[user];
-//     }
-//   }
-//   return false;
-// };
+
 //keeps track of all the urls and their shortened forms
 const urlDatabase = {
   b2xVn2: {
     longURL: "http://www.lighthouselabs.ca",
     userId: "b2xVn2",
   },
-  psm5xK: { 
-    longURL: "http://www.google.com", 
-    userId: "psm5xK" 
-  }
+  psm5xK: {
+    longURL: "http://www.google.com",
+    userId: "psm5xK",
+  },
 };
 // middleware
 app.use(morgan("dev"));
 //ROUTES
 
 app.get("/urls", (req, res) => {
-  const userID = req.cookies['user_Id']
+  if (!req.cookies["user_Id"]) {
+    return res.send(`Please login to view url page`);
+  }
+  const userID = req.cookies["user_Id"];
 
-  console.log('userCookies', userID)
-  const currentUser = getUser(userID, null, users)
-  
-  console.log('currentUser', currentUser)
+  // console.log('userCookies', userID)
+  const currentUser = getUser(userID, null, users);
+
+  // console.log('currentUser', currentUser)
 
   const templateVars = {
     urls: urlDatabase,
@@ -98,9 +91,9 @@ app.get("/urls/new", (req, res) => {
     return res.redirect(`/login`);
   }
 
-  const urls = urlDatabase[req.cookies["user_Id"]]
+  const urls = urlDatabase[req.cookies["user_Id"]];
 
-  const templateVars = { user: users[req.cookies["user_Id"]], urls: urls};
+  const templateVars = { user: users[req.cookies["user_Id"]], urls: urls };
   return res.render("urls_new", templateVars);
 });
 //register page, if logged in redirect to /urls
@@ -117,18 +110,18 @@ app.get("/register", (req, res) => {
 // login page
 //redirects to /urls if logged in
 app.get("/login", (req, res) => {
-  // if (req.cookies["user_Id"]) {
-  //   res.redirect(`/urls`);
-  //   return;
-  // }
+  if (req.cookies["user_Id"]) {
+    res.redirect(`/urls`);
+    return;
+  }
   let templateVars = { user: users[req.cookies["user_Id"]] };
   res.render("urls_login", templateVars);
 });
 
 // url_show page (long and short versions)
 app.get("/urls/:id", (req, res) => {
-  console.log('urlDatabase', urlDatabase)
-  console.log('req.params.id', req.params.id)
+  // console.log('urlDatabase', urlDatabase)
+  // console.log('req.params.id', req.params.id)
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id].longURL,
@@ -154,8 +147,8 @@ app.post("/urls", (req, res) => {
   const newId = generateRandomString();
   urlDatabase[newId] = {
     longURL: req.body.longURL,
-    userId: req.cookies["user_Id"]
-  }// newid-longURL key value pair save to urlDatabase
+    userId: req.cookies["user_Id"],
+  }; // newid-longURL key value pair save to urlDatabase
   return res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
 });
 // delete new short url, redirect to urls_index
@@ -200,7 +193,6 @@ app.post("/login", (req, res) => {
     if (req.body.password === user.password) {
       res.cookie("user_Id", user.userId);
       return res.redirect("/urls");
-      
     } else {
       res.statusCode = 403;
       return res.send(`Please try again, password and email do not match`);
