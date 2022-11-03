@@ -8,7 +8,7 @@ const getUser = (userID, email, users) => {
       }
     }
 
-    return null;
+    return undefined;
   }
 
   if (email) {
@@ -18,7 +18,7 @@ const getUser = (userID, email, users) => {
       }
     }
 
-    return null;
+    return undefined;
   }
 };
 
