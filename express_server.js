@@ -81,12 +81,9 @@ app.use(morgan("dev"));
 // urls render page, send error message if not logged in
 app.get("/urls", (req, res) => {
   const userID = req.cookies["user_Id"];
-
   // console.log('userCookies', userID)
   const currentUser = getUser(userID, null, users);
-
   // console.log('currentUser', currentUser)
-
   const templateVars = {
     urls: urlDatabase,
     user: currentUser,
@@ -96,18 +93,18 @@ app.get("/urls", (req, res) => {
 
 // render form page to generate new shortURL id and longURL pair; redirect to login if not logged in
 app.get("/urls/new", (req, res) => {
-  if (!req.cookies["user_Id"]) {
-    return res.redirect(`/login`);
+  const userID = req.cookies["user_Id"];
+  if (userID) {
+    const urls = urlDatabase[userID];
+    const templateVars = { user: users[userID] };
+    return res.render("urls_new", templateVars);
   }
-
-  const urls = urlDatabase[req.cookies["user_Id"]];
-
-  const templateVars = { user: users[req.cookies["user_Id"]] };
-  return res.render("urls_new", templateVars);
+  return res.redirect(`/login`);
 });
 //register page, if logged in redirect to /urls
 app.get("/register", (req, res) => {
-  if (req.cookies["user_Id"]) {
+  const userID = req.cookies["user_Id"];
+  if (userID) {
     return res.redirect(`/urls`);
   }
   const templateVars = {
@@ -118,16 +115,17 @@ app.get("/register", (req, res) => {
 // login page
 //redirects to /urls if logged in
 app.get("/login", (req, res) => {
-  if (req.cookies["user_Id"]) {
-    res.redirect(`/urls`);
-    return;
+  const userID = req.cookies["user_Id"];
+  if (userID) {
+    return res.redirect(`/urls`);
   }
-  let templateVars = { user: users[req.cookies["user_Id"]] };
+  let templateVars = { user: users[userID] };
   res.render("urls_login", templateVars);
 });
 
 // url_show page (long and short versions)
 app.get("/urls/:id", (req, res) => {
+  const userID = req.cookies["user_Id"];
   // console.log("urlDatabase", urlDatabase);
   // console.log("req.params.id", req.params.id);
   const templateVars = {
@@ -141,6 +139,7 @@ app.get("/urls/:id", (req, res) => {
 // allow to edit long url in show page
 // redirects to edit page
 app.post("/urls/:id", (req, res) => {
+  const userID = req.cookies["user_Id"];
   const id = req.params.id;
   urlDatabase[id].longURL = req.body.longURL;
   res.redirect(`/urls`);
@@ -151,17 +150,16 @@ app.post("/urls/:id", (req, res) => {
 });
 // submit form that shortens url, if not logged in says please login
 app.post("/urls", (req, res) => {
-  if (!req.cookies["user_Id"]) {
-    res.statusCode = 403;
-    res.send(`Please login to shorten your url`);
-    return;
+  const userID = req.cookies["user_Id"];
+  if (userID) {
+    const newId = generateRandomString();
+    urlDatabase[newId] = {
+      longURL: req.body.longURL,
+      userID: req.cookies["user_Id"],
+    }; // newid-longURL key value pair save to urlDatabase
+    return res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
   }
-  const newId = generateRandomString();
-  urlDatabase[newId] = {
-    longURL: req.body.longURL,
-    userID: req.cookies["user_Id"],
-  }; // newid-longURL key value pair save to urlDatabase
-  return res.redirect(`/urls/${newId}`); // need to redirect to /urls/:id
+  return res.statusCode(403).send("<h2>Please login to shorten your url</h2>");
 });
 // delete new short url, redirect to urls_index
 app.post("/urls/:id/delete", (req, res) => {
@@ -173,7 +171,6 @@ app.post("/register", (req, res) => {
   if (req.body.email && req.body.password) {
     if (!getUser(null, req.body.email, users)) {
       const userID = generateRandomString();
-
       users[userID] = {
         userID,
         email: req.body.email,
@@ -183,10 +180,10 @@ app.post("/register", (req, res) => {
       res.redirect("/urls");
       return;
     } else {
-      return res.status(400).send(`Sorry, that email already exists`);
+      return res.status(400).send("<h2>Sorry, that email already exists</h2>");
     }
   }
-  res.status(400).send(`Please enter an email and password`);
+  res.status(400).send("<h2>Please enter an email and password</h2>");
 });
 //redirect to longURl when click id, 404 if no longurl doesnt exist, if id doesnt exist send message
 app.get("/u/:id", (req, res) => {
@@ -195,7 +192,9 @@ app.get("/u/:id", (req, res) => {
     res.redirect(longURL);
     return;
   }
-  res.status(404).send(`404 page not found, this short URL does not exist`);
+  res
+    .status(404)
+    .send("<h2>404 page not found, this short URL does not exist</h2>");
 });
 //login route
 app.post("/login", (req, res) => {
@@ -205,12 +204,12 @@ app.post("/login", (req, res) => {
       res.cookie("user_Id", user.userID);
       return res.redirect("/urls");
     } else {
-      res.statusCode = 403;
-      return res.send(`Please try again, password and email do not match`);
+      return (res.statusCode = (403).send(
+        "<h2>Please try again, password and email do not match</h2>"
+      ));
     }
   }
-  res.statusCode = 403;
-  return res.send(`Sorry, email not found`);
+  return res.statusCode(403).send("<h2>Sorry, email not found</h2>");
 });
 //logout route
 app.post("/logout", (req, res) => {
