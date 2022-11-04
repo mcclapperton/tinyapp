@@ -37,7 +37,6 @@ app.get("/login", (req, res) => {
 });
 
 // Post to urls
-// submit form that shortens url, if not logged in says please login
 app.post("/urls", (req, res) => {
   const cookieID = req.session.userId;
   const updatedURL = req.body.longURL;
@@ -54,7 +53,7 @@ app.post("/urls", (req, res) => {
   }
   return res.status(403).send("<h2>Please login to shorten your url</h2>");
 });
-//registration email and password
+// Post route for registering
 app.post("/register", (req, res) => {
   const password = req.body.password;
   const email = req.body.email;
@@ -73,7 +72,7 @@ app.post("/register", (req, res) => {
   }
   res.status(400).send("<h2>Please enter an email and password</h2>");
 });
-//register page, if logged in redirect to /urls
+// Get route for registering
 app.get("/register", (req, res) => {
   const cookieID = req.session.userId;
   const id = req.params.id;
@@ -84,8 +83,7 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
-//redirect to longURl when click id, 404 if no longurl
-//  doesnt exist, if id doesnt exist send message
+// Get route for redirect page to longURL from shortURL
 app.get("/u/:id", (req, res) => {
   const cookieID = req.session.userId;
   if (!cookieID) {
@@ -100,7 +98,7 @@ app.get("/u/:id", (req, res) => {
   return res.redirect(urlDatabase[req.params.id].longURL);
 });
 
-//deletes url from myURLS
+///Post route for url deletion
 app.post("/urls/:id/delete", (req, res) => {
   const cookieID = req.session.userId;
   const id = req.params.id;
@@ -120,7 +118,7 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-//login route
+//Post login route
 app.post("/login", (req, res) => {
   const password = req.body.password;
   const email = req.body.email;
@@ -137,14 +135,14 @@ app.post("/login", (req, res) => {
     .send("<h2>Please try again, password and email do not match</h2>");
 });
 
-//logout route
+//Post logout route
 app.post("/logout", (req, res) => {
   res.clearCookie("session");
   res.clearCookie("session.sig");
   res.redirect(`/login`);
 });
-// allow to edit long url in show page
-// redirects to edit page
+
+// Post route to ursl/shortUrl page
 app.post("/urls/:id", (req, res) => {
   const cookieID = req.session.userId;
   const id = req.params.id;
@@ -169,8 +167,7 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-// render form page to generate new shortURL id and longURL pair;
-//  redirect to login if not logged in
+// Get route for new urls
 app.get("/urls/new", (req, res) => {
   const cookieID = req.session.userId;
   const user = users[cookieID];
@@ -185,8 +182,7 @@ app.get("/urls/new", (req, res) => {
   return res.redirect(`/login`);
 });
 
-// existing urls render page, send error message if not logged in
-
+// Get route for main urls page
 app.get("/urls", (req, res) => {
   const cookieID = req.session.userId;
   const filteredURLS = urlsForUser(cookieID, urlDatabase);
@@ -201,7 +197,7 @@ app.get("/urls", (req, res) => {
   return res.status(403).send("<h2>Login to see urls</h2>");
 });
 
-// url_show page (long and short versions)
+// Get route for urls/short url page
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id;
   const longURL = urlDatabase[req.params.id].longURL;
@@ -218,11 +214,11 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// welcome page
+// get route for welcome page
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
-// reply that server is running and on which port
+// Logs that server is running
 app.listen(PORT, () => {
   console.log(`Tiny app listening on port ${PORT}!`);
 });
