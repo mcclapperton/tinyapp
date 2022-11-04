@@ -4,8 +4,8 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
-! [User registration page] 
-! [Main url index page] 
+! [User registration page] (https://github.com/mcclapperton/tinyapp/blob/master/docs/Registration-page.png)
+! [Main url index page] (https://github.com/mcclapperton/tinyapp/blob/master/docs/URLS-index.png)
 
 ## Dependencies
 
