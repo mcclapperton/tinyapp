@@ -1,19 +1,25 @@
 // Setup functions
 
 const express = require("express");
+
 const app = express();
+
 const PORT = 8080;
+
 const cookieSession = require("cookie-session");
+
 const bcrypt = require("bcryptjs");
+
 app.use(express.urlencoded({ extended: true }));
+
 app.set("view engine", "ejs");
+
 app.use(
   cookieSession({
     name: "session",
     keys: ["gyfisdbiri", "iwirufhfhfhfhf0987hfhf"],
   })
 );
-
 
 // functions in helpers
 const { urlsForUser, getUser, generateRandomString } = require("./helpers");
@@ -25,6 +31,7 @@ const users = {
     password: "dishwasher-funk",
   },
 };
+
 const urlDatabase = {};
 
 //Routes
@@ -36,6 +43,7 @@ app.get("/login", (req, res) => {
     return res.redirect(`/urls`);
   }
   let templateVars = { user: null };
+
   res.render("urls_login", templateVars);
 });
 
@@ -43,6 +51,7 @@ app.get("/login", (req, res) => {
 app.post("/urls", (req, res) => {
   const cookieID = req.session.userId;
   const updatedURL = req.body.longURL;
+
   if (cookieID) {
     if (!updatedURL) {
       return res.status(400).send("<h2>Make sure to enter a valid url</h2>");

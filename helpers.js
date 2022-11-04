@@ -22,16 +22,18 @@ const getUser = (userID, email, users) => {
   }
 };
 
-// returns the URLs where the userID is equal to the id of the currently logged-in user.
+// returns the URLs of the userID is equal to the id of the currently logged-in user.
 const urlsForUser = (id, urlDatabase) => {
-  // console.log("urlDB:", urlDatabase);
+
   let filteredDB = {};
+
   for (let key in urlDatabase) {
+
     if (urlDatabase[key].userID === id) {
+      
       filteredDB[key] = urlDatabase[key];
     }
   }
-  // console.log("filteredDB:", filteredDB);
   return filteredDB;
 };
 
@@ -39,12 +41,17 @@ const urlsForUser = (id, urlDatabase) => {
 const generateRandomString = () => {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+
   let randomId = [];
+
   let splitArray = characters.split("");
+
   for (let i = 0; i <= 5; i++) {
     randomId.push(splitArray[Math.floor(Math.random() * characters.length)]);
   }
+
   return randomId.join("");
+
 };
 
 module.exports = { getUser, generateRandomString, urlsForUser };
