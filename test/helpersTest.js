@@ -1,6 +1,6 @@
 const { assert } = require("chai");
 
-const { urlsForUser, getUser, generateRandomString } = require("../helpers");
+const { getUser } = require("../helpers");
 
 const testUsers = {
   userRandomID: {
@@ -15,16 +15,16 @@ const testUsers = {
   },
 };
 
-describe("getUser", function () {
-  it("should return a user with valid email", function () {
+describe("getUser", function() {
+  it("should return a user with valid email", function() {
     const user = getUser(null, "user@example.com", testUsers);
     const expectedUserID = "userRandomID";
     assert.equal(expectedUserID, user.id);
   });
 });
 
-describe("getUser", function () {
-  it("should return undefined with a non-existant email", function () {
+describe("getUser", function() {
+  it("should return undefined with a non-existant email", function() {
     const user = getUser(null, "hello@example.com", testUsers);
     const expectedUserID = undefined;
     assert.equal(expectedUserID, user);
