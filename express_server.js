@@ -1,10 +1,10 @@
+// Setup functions
+
 const express = require("express");
 const app = express();
 const PORT = 8080;
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
-const { urlsForUser, getUser, generateRandomString } = require("./helpers");
-
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.use(
@@ -14,7 +14,10 @@ app.use(
   })
 );
 
-// global object to store and access users in app
+
+// functions in helpers
+const { urlsForUser, getUser, generateRandomString } = require("./helpers");
+
 const users = {
   user2RandomID: {
     id: "user2RandomID",
@@ -24,7 +27,7 @@ const users = {
 };
 const urlDatabase = {};
 
-//ROUTES
+//Routes
 
 // login page
 //redirects to /urls if logged in
@@ -175,7 +178,6 @@ app.get("/urls/new", (req, res) => {
     user,
     urls: urlsForUser(cookieID, urlDatabase),
   };
-
   if (cookieID) {
     return res.render("urls_new", templateVars);
   }
