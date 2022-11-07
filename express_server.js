@@ -2,13 +2,13 @@
 
 const express = require("express");
 
-const app = express();
-
 const PORT = 8080;
 
 const cookieSession = require("cookie-session");
 
 const bcrypt = require("bcryptjs");
+
+const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,15 +24,8 @@ app.use(
 // functions in helpers
 const { urlsForUser, getUser, generateRandomString } = require("./helpers");
 
-const users = {
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk",
-  },
-};
-
-const urlDatabase = {};
+// mock data
+const { users, urlDatabase } = require("./mockData");
 
 //Routes
 
@@ -67,8 +60,8 @@ app.post("/urls", (req, res) => {
 });
 // Post route for registering
 app.post("/register", (req, res) => {
-  const password = req.body.password;
-  const email = req.body.email;
+  const { password } = req.body;
+  const { email } = req.body;
   if (email && password) {
     if (!getUser(null, email, users)) {
       const id = generateRandomString();
@@ -87,7 +80,7 @@ app.post("/register", (req, res) => {
 // Get route for registering
 app.get("/register", (req, res) => {
   const cookieID = req.session.userId;
-  const id = req.params.id;
+  const { id } = req.params;
   if (cookieID) {
     return res.redirect(`/urls`);
   }
@@ -97,10 +90,6 @@ app.get("/register", (req, res) => {
 
 // Get route for redirect page to longURL from shortURL
 app.get("/u/:id", (req, res) => {
-  const cookieID = req.session.userId;
-  if (!cookieID) {
-    return res.send("<h2>Login to see page!</h2>");
-  }
   if (!urlDatabase[req.params.id]) {
     return res
       .status(404)
@@ -113,7 +102,7 @@ app.get("/u/:id", (req, res) => {
 ///Post route for url deletion
 app.post("/urls/:id/delete", (req, res) => {
   const cookieID = req.session.userId;
-  const id = req.params.id;
+  const { id } = req.params;
 
   if (!id) {
     return res.send("<h2>Id does not exist</h2>");
@@ -132,10 +121,10 @@ app.post("/urls/:id/delete", (req, res) => {
 
 //Post login route
 app.post("/login", (req, res) => {
-  const password = req.body.password;
-  const email = req.body.email;
+  const { password } = req.body;
+  const { email } = req.body;
   const user = getUser(null, email, users);
-  if (user === null) {
+  if (!user) {
     return res.status(403).send("<h2>Sorry, user not found</h2>");
   }
   if (bcrypt.compareSync(password, user.password)) {
@@ -157,7 +146,7 @@ app.post("/logout", (req, res) => {
 // Post route to ursl/shortUrl page
 app.post("/urls/:id", (req, res) => {
   const cookieID = req.session.userId;
-  const id = req.params.id;
+  const { id } = req.params;
   const updatedURL = req.body.longURL;
   if (!id) {
     return res.send("<h2>Id does not exist</h2>");
@@ -210,7 +199,7 @@ app.get("/urls", (req, res) => {
 
 // Get route for urls/short url page
 app.get("/urls/:id", (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
   const longURL = urlDatabase[req.params.id].longURL;
   const cookieID = req.session.userId;
   const userId = urlDatabase[req.params.id].userID; // user/cookie id
@@ -227,7 +216,7 @@ app.get("/urls/:id", (req, res) => {
 
 // get route for welcome page
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  return res.redirect(`/login`);
 });
 // Logs that server is running
 app.listen(PORT, () => {
@@ -235,7 +224,4 @@ app.listen(PORT, () => {
 });
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
